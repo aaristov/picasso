@@ -16,7 +16,7 @@ from PyQt4 import QtCore, QtGui
 import time
 import numpy as np
 import traceback
-from .. import io, localize, gausslq, gaussmle, zfit, lib, CONFIG, avgroi
+from .. import io, localize, gausslq, gaussmle, zfit, lib, CONFIG, avgroi, phasor
 
 try:
     from pygpufit import gpufit as gf
@@ -419,7 +419,7 @@ class ParametersDialog(QtGui.QDialog):
 
         fit_grid.addWidget(QtGui.QLabel('Method:'), 1, 0)
         self.fit_method = QtGui.QComboBox()
-        self.fit_method.addItems(['MLE, integrated Gaussian', 'LQ, Gaussian','Average of ROI'])
+        self.fit_method.addItems(['MLE, integrated Gaussian', 'LQ, Gaussian','Phasor','Average of ROI'])
         fit_grid.addWidget(self.fit_method, 1, 1)
         fit_stack = QtGui.QStackedWidget()
         fit_grid.addWidget(fit_stack, 2, 0, 1, 2)
@@ -1101,7 +1101,7 @@ class Window(QtGui.QMainWindow):
         if self.movie is not None and self.ready_for_fit:
             self.status_bar.showMessage('Preparing fit...')
             method = self.parameters_dialog.fit_method.currentText()
-            method = {'MLE, integrated Gaussian': 'mle', 'LQ, Gaussian': 'lq', 'Average of ROI': 'avg'}[method]
+            method = {'MLE, integrated Gaussian': 'mle', 'LQ, Gaussian': 'lq','Phasor':'phasor', 'Average of ROI': 'avg'}[method]
             eps = self.parameters_dialog.convergence_criterion.value()
             max_it = self.parameters_dialog.max_it.value()
             fit_z = self.parameters_dialog.fit_z_checkbox.isChecked()
@@ -1276,6 +1276,17 @@ class FitWorker(QtCore.QThread):
             theta = avgroi.fits_from_futures(fs)
             em = self.camera_info['gain'] > 1
             locs = avgroi.locs_from_fits(self.identifications, theta, self.box, em)
+        elif self.method =='phasor':
+            print('Phasor')
+            #fitting with phasor (pSMLM) ,method
+            fs = phasor.fit_spots_parallel(spots, async=True)
+            n_tasks = len(fs)
+            while lib.n_futures_done(fs) < n_tasks:
+                self.progressMade.emit(round(N * lib.n_futures_done(fs) / n_tasks), N)
+                time.sleep(0.2)
+            theta = phasor.fits_from_futures(fs)
+            em = self.camera_info['gain'] > 1
+            locs = phasor.locs_from_fits(self.identifications, theta, self.box, em)
         else:
             print('This should never happen...')
         self.progressMade.emit(N+1, N)
