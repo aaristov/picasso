@@ -961,6 +961,7 @@ class Window(QtGui.QMainWindow):
             else:
                 pwd = []
             fulllist,  ok = PipettingDialog.getSchemes(pwd=pwd)
+
             if fulllist == []:
                 self.statusBar().showMessage('No *.csv found. Scheme not created.')
             else:
@@ -984,7 +985,7 @@ class Window(QtGui.QMainWindow):
                                 pipettlist.append([fulllist[j][0], fulllist[j][1], fulllist[j][2], fulllist[j][3], rgbcolors[sequencerow[4]]])
                                 platelist.append(fulllist[j][0])
                                 del fullpipettlist[-1]
-                                fullpipettlist.append(fulllist[j])
+                                fullpipettlist.append([fulllist[j][0], fulllist[j][1], fulllist[j][2], fulllist[j][3], sequencerow[4]])
                                 break  # first found will be taken
 
                 exportlist = dict()
@@ -1017,13 +1018,15 @@ class Window(QtGui.QMainWindow):
                 if path:
                     with PdfPages(path) as pdf:
                         for x in range(0, len(platenames)):
-                            # pdf.savefig(allfig[x])
+
                             pdf.savefig(allfig[x],   bbox_inches='tight',  pad_inches=0.2,  dpi=200)
-                            # pdf.savefig(allfig[x],   bbox_inches='tight',  pad_inches=0.1)
                             base, ext = _ospath.splitext(path)
-                            csv_path = base + '.csv'
-                            design.savePlate(csv_path, exportlist)
+                    
+                    csv_path = base + '.csv'
+                    design.savePlate(csv_path, exportlist)
+
                     self.statusBar().showMessage('Pippetting scheme saved to: '+path)
+
                     self.pwd = os.path.dirname(path)
 
     def foldingScheme(self):
