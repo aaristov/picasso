@@ -8,6 +8,10 @@
     :author: Joerg Schnitzbauer, 2015
     :copyright: Copyright (c) 2015 Jungmann Lab, Max Planck Institute of Biochemistry
 """
+
+import matplotlib as mpl
+mpl.use('TkAgg')
+
 import os.path
 from picasso.gui import average
 
