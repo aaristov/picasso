@@ -13,6 +13,8 @@ import time
 import traceback
 from multiprocessing import sharedctypes
 
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import numba
 import numpy as np
